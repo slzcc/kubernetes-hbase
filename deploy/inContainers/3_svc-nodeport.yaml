@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hbase-client
+  namespace: user
+  labels:
+    app: hbase
+spec:
+  type: NodePort
+  ports:
+  - port: 60030
+    name: master
+    nodePort: 60031
+  - port: 60010
+    name: web
+    nodePort: 60011
+  - port: 22
+    name: ssh
+    nodePort: 20011
+  selector:
+    app: hbase
