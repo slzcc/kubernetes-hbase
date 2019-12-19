@@ -46,7 +46,7 @@ spec:
       containers:
       - name: hbase
         imagePullPolicy: Always
-        image: harbor.ops.zhangyue-ops.com/hadoop/hbase:2.1.8-supervisord
+        image: slzcc/hbase:2.1.8-supervisord
         resources:
           requests:
             memory: "10000Mi"
