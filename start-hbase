@@ -10,6 +10,7 @@ HBASE_HOME=${HBASE_HOME:-"/opt/hbase-${HBASE_VERSION}"}
 SSH_PORT=${SSH_PORT:-}
 
 isCUSTOM=${isCUSTOM:-false}
+isCheckHOSTNAME=${isCheckHOSTNAME:-false}
 
 ulimit -n 65535
 
@@ -22,19 +23,31 @@ echo "export JAVA_HOME=${JAVA_HOME}" >> /opt/hbase-${HBASE_VERSION}/conf/hbase-e
 function scan_ssh_key() {
     for (( i=1; i<=$SERVERS; i++ ))
     do
-        ssh-keyscan -t rsa ${HOSTNAME//-*}-$((i-1)).${DOMAIN} -p ${SSH_PORT} >> ~/.ssh/known_hosts && ssh-keygen -H -f ~/.ssh/known_hosts
+        ssh-keyscan -p ${SSH_PORT} -t rsa ${HOSTNAME//-*}-$((i-1)).${DOMAIN} >> ~/.ssh/known_hosts
     done
 }
 
-if [ ${isCUSTOM} == "false" ]; then
-	/usr/sbin/sshd
+/usr/sbin/sshd
+ssh-keyscan -p ${SSH_PORT} -t rsa localhost >> ~/.ssh/known_hosts
+/set-ssh-keyscan
 
-	until echo rcok | nc ${HOSTNAME//-*}-0.${DOMAIN} ${SSH_PORT}; do >&2 echo "Starting..." && sleep 1 ; done
-	until echo rcok | nc ${HOSTNAME//-*}-1.${DOMAIN} ${SSH_PORT}; do >&2 echo "Starting..." && sleep 1 ; done
-	until echo rcok | nc ${HOSTNAME//-*}-2.${DOMAIN} ${SSH_PORT}; do >&2 echo "Starting..." && sleep 1 ; done
+if [ ${isCUSTOM} == "false" ]; then
+
+    if [ ${isCheckHOSTNAME} == 'false' ]; then
+        for _host in ${HOSTNAMEs[*]}; do
+            until echo rcok | nc ${_host} ${SSH_PORT}; do >&2 echo "Starting..." && sleep 1 ; done
+        done
+    elif [ ${isCheckHOSTNAME} == 'true' ]; then
+        for (( i=1; i<=$SERVERS; i++ ))
+        do
+            until echo rcok | nc ${HOSTNAME//-*}-$((i-1)).${DOMAIN} ${SSH_PORT}; do >&2 echo "Starting..." && sleep 1 ; done
+        done
+    fi
 
 	scan_ssh_key
 fi
 
 
 until /opt/hbase-${HBASE_VERSION}/bin/start-hbase.sh ; do >&2 echo "Starting..." && sleep 1 ; done
+
+ps aux|grep /usr/sbin/sshd| grep -v grep | awk '{print $2}'|xargs -i kill -9 {} || true
