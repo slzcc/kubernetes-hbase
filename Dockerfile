@@ -41,3 +41,5 @@ COPY start-hbase /start-hbase
 COPY check-ready /check-ready
 COPY set-ssh-keyscan /set-ssh-keyscan
 COPY set-ssh-config /set-ssh-config
+
+ENV HBASE_VERSION=$HBASE_VERSION
