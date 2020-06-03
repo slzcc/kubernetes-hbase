@@ -47,7 +47,7 @@ spec:
       containers:
       - name: hbase
         imagePullPolicy: Always
-        image: slzcc/hbase:2.1.8-supervisord
+        image: slzcc/hbase:2.1.8-supervisord-v2
         ports:
         - containerPort: 60010
           name: p60010
@@ -78,7 +78,9 @@ spec:
         - name: SSH_PORT
           value: "23313"
         - name: HOSTNAMEs
-          value: '10.100.21.87 10.100.21.88 10.100.21.89'
+          value: "10.100.21.87 10.100.21.88 10.100.21.89"
+        - name: ischeckhostname
+          value: "false"
       volumes:
       - hostPath:
           path: /usr/share/zoneinfo
