@@ -20,7 +20,8 @@ RUN echo "Acquire::http::Proxy \"http://192.168.7.24:44551\";" > /etc/apt/apt.co
 
 ARG HBASE_VERSION=2.1.8
 
-RUN https_proxy=192.168.7.24:44551 wget -qO- https://www-us.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz | tar zx -C /opt/
+#RUN https_proxy=192.168.7.24:44551 wget -qO- https://www-us.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz | tar zx -C /opt/
+RUN https_proxy=192.168.7.24:44551 wget -qO- https://archive.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz | tar zx -C /opt/
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/hbase-$HBASE_VERSION/bin:/usr/local/jdk/bin
 
