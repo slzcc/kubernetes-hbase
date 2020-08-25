@@ -1,0 +1,106 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hbase
+  namespace: user
+spec:
+  selector:
+    matchLabels:
+      app: hbase
+  serviceName: hbase-user-dev-01
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: hbase
+    spec:
+      nodeSelector:
+          zhangyue-ops.com/schedule-hbase-01: "true"
+      tolerations:
+      - key: "special"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      - key: "organization"
+        operator: "Equal"
+        value: "user"
+        effect: "NoSchedule"
+      - key: "application"
+        operator: "Equal"
+        value: "bigdata"
+        effect: "NoSchedule"
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - hbase
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: hbase
+        imagePullPolicy: Always
+        image: slzcc/hbase:2.1.8-supervisord
+        resources:
+          requests:
+            memory: "10000Mi"
+            cpu: "20"
+        ports:
+        - containerPort: 60010
+          name: p60010
+        - containerPort: 60000
+          name: p60000
+        volumeMounts:
+        - name: datadir
+          mountPath: /data
+        - name: hbase-config
+          mountPath: /opt/hbase-2.1.8/conf/hbase-site.xml
+          subPath: hbase-site.xml
+        - name: hbase-config
+          mountPath: /opt/hbase-2.1.8/conf/regionservers
+          subPath: regionservers
+        - name: hbase-config
+          mountPath: /opt/hbase-2.1.8/conf/hdfs-site.xml
+          subPath: hdfs-site.xml
+        - mountPath: /usr/share/zoneinfo
+          name: usr-local-timezone
+          readOnly: true
+        command:
+        - /start-supervisord
+        securityContext:
+          runAsUser: 0
+        env:
+        - name: TZ
+          value: Asia/Shanghai
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "/check-ready 60030"
+          initialDelaySeconds: 60
+          timeoutSeconds: 60
+      volumes:
+      - hostPath:
+          path: /usr/share/zoneinfo
+          type: DirectoryOrCreate
+        name: usr-local-timezone
+      - name: datadir
+        hostPath:
+          path: '/data/server/kubernetes/hbase'
+      - name: hbase-config
+        configMap:
+          name: user-dev-hbase-cluster1
+          items:
+          - key: hbase-site.xml
+            path: hbase-site.xml
+          - key: regionservers
+            path: regionservers
+          - key: hdfs-site.xml
+            path: hdfs-site.xml
