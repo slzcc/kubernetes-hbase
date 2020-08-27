@@ -15,12 +15,16 @@ RUN echo "Acquire::http::Proxy \"http://192.168.7.24:44551\";" > /etc/apt/apt.co
     apt update && \
     apt install -y wget openssh-server supervisor vim net-tools apt-transport-https netcat && \
     apt-get install -y fonts-baekmuk fonts-nanum language-pack-zh-hans && \
+    apt-get install libsnappy* -y && \
     rm -rf /var/lib/apt/lists/* && \
     apt clean
 
 ARG HBASE_VERSION=1.2.0
 
 RUN https_proxy=192.168.7.24:44551 wget -qO- https://archive.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz | tar zx -C /opt/
+
+RUN mkdir -p /opt/hbase-$HBASE_VERSION/lib/native/Linux-amd64-64 && \
+    http_proxy=192.168.7.24:44551 wget -qO- http://dl.bintray.com/sequenceiq/sequenceiq-bin/hadoop-native-64-3.2.1.tar | tar x -C /opt/hbase-$HBASE_VERSION/lib/native/Linux-amd64-64
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/hbase-$HBASE_VERSION/bin:/usr/local/jdk/bin
 
