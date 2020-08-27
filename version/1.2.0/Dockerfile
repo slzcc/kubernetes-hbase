@@ -2,6 +2,8 @@ FROM slzcc/java:java-jdk-1.8.0.201 as jdk
 
 FROM slzcc/sshd:latest
 
+FROM slzcc/hadoop:3.2.1-supervisord-v5 as native
+
 COPY --from=jdk /jdk1.8.0_201 /usr/local/jdk
 
 ENV JAVA_HOME=/usr/local/jdk \
@@ -23,8 +25,7 @@ ARG HBASE_VERSION=1.2.0
 
 RUN https_proxy=192.168.7.24:44551 wget -qO- https://archive.apache.org/dist/hbase/$HBASE_VERSION/hbase-$HBASE_VERSION-bin.tar.gz | tar zx -C /opt/
 
-RUN mkdir -p /opt/hbase-$HBASE_VERSION/lib/native/Linux-amd64-64 && \
-    http_proxy=192.168.7.24:44551 wget -qO- http://dl.bintray.com/sequenceiq/sequenceiq-bin/hadoop-native-64-2.6.0.tar | tar x -C /opt/hbase-$HBASE_VERSION/lib/native/Linux-amd64-64
+COPY --from=native /opt/hadoop-3.2.1/lib/native  /opt/hbase-$HBASE_VERSION/lib/native/Linux-amd64-64
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/hbase-$HBASE_VERSION/bin:/usr/local/jdk/bin
 
